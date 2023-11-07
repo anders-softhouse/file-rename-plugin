@@ -56,8 +56,8 @@
                 </executions>
 
                 <configuration>
-                    <sourceDir>my-source</sourceDir>
-                    <targetDir>my-target</targetDir>
+                    <sourceDir>C:\Users\anbj\Code\file-rename-plugin</sourceDir>
+                    <targetDir>src</targetDir>
 
                     <rules>
                         <rule>
