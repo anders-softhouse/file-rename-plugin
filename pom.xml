@@ -56,22 +56,15 @@
                 </executions>
 
                 <configuration>
-                    <sourceDir>C:\Users\anbj\Code\file-rename-plugin</sourceDir>
+                    <sourceDir>C:\Users\anbj\Code\file-rename-plugin\model</sourceDir>
                     <targetDir>src</targetDir>
 
                     <rules>
                         <rule>
-                            <fileRegex>my-file-regex</fileRegex>
-                            <fileSubstitution></fileSubstitution>
-                            <contentRegex></contentRegex>
-                            <contentSubstitution></contentSubstitution>
-                        </rule>
-
-                        <rule>
-                            <fileRegex>my-file-regex-2</fileRegex>
-                            <fileSubstitution></fileSubstitution>
-                            <contentRegex></contentRegex>
-                            <contentSubstitution></contentSubstitution>
+                            <fileRegex>(ApiModelV1)(.+)</fileRegex>
+                            <fileSubstitution>^2$</fileSubstitution>
+                            <contentRegex>(ApiModelV1)(\w+)</contentRegex>
+                            <contentSubstitution>^2$</contentSubstitution>
                         </rule>
 
                     </rules>

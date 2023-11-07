@@ -8,10 +8,11 @@ import org.apache.maven.plugins.annotations.Mojo;
 import org.apache.maven.plugins.annotations.Parameter;
 import org.apache.maven.project.MavenProject;
 
-import java.io.File;
+import java.io.*;
+import java.nio.file.*;
 
-import java.util.List;
-import java.util.ArrayList;
+import java.util.*;
+import java.util.regex.*;
 
 @Mojo(name = "rename", defaultPhase = LifecyclePhase.GENERATE_SOURCES)
 public class FileRenameMojo extends AbstractMojo {
@@ -49,9 +50,13 @@ public class FileRenameMojo extends AbstractMojo {
         getLog().info("TARGET: " + target.getAbsolutePath());
 
         File[] files = source.listFiles();
+
+        getLog().info("Antal filer: " + files.length);
         List<File> filesCurrated = new ArrayList<>();
 
-        for (File file : filesCurrated) {
+        // Currently we are only listing files. In the future we may recursively go into
+        // sub-directories as well.
+        for (File file : files) {
 
             if (file.isFile()) {
                 filesCurrated.add(file);
@@ -59,12 +64,84 @@ public class FileRenameMojo extends AbstractMojo {
 
         }
 
+        // For each file in the source directory, loop through eaqch rule and see if
+        // file name or file content needs to change.
         for (File file : filesCurrated) {
 
             for (Rule rule : rules) {
 
-                if(  ) {
+                // If part of content matches regex, update content to new format ( every
+                // occurance )
+                String content = null;
 
+                try {
+                    content = new String(Files.readAllBytes(file.toPath()));
+                    Matcher contentMatcher = Pattern.compile(rule.getContentRegex()).matcher(content);
+
+                    if (contentMatcher.find()) {
+                        getLog().info("FOUND CONTENT");
+                        String newString = rule.getContentSubstitution();
+
+                        for (int index = 0; index <= contentMatcher.groupCount(); index++) {
+                            String name = index + "";
+                            String value = contentMatcher.group(index);
+
+                            newString = newString.replaceAll("\\^" + name + "\\$", value);
+                        }
+
+                        content = content.replaceAll(rule.getContentRegex(), newString);
+
+                        getLog().info("CONTENT: " + content);
+
+                        try {
+                            Files.write(Paths.get(file.getAbsolutePath()), content.getBytes(),
+                                    StandardOpenOption.TRUNCATE_EXISTING);
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (UnsupportedOperationException e) {
+                            e.printStackTrace();
+                        } catch (SecurityException e) {
+                            e.printStackTrace();
+                        }
+
+                    } else {
+                        getLog().info("NOOOOOOOOOOOOOOOOOOOOOOOOOOO CONTENT");
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                // If file name matches regex, change file name to new format
+                String fileName = file.getName();
+                getLog().info("File: " + fileName);
+
+                String newFileName = null;
+
+                if (fileName.matches(rule.getFileRegex())) {
+                    Pattern pattern = Pattern.compile(rule.getFileRegex());
+
+                    Matcher matcher = pattern.matcher(fileName);
+                    matcher.find();
+
+                    newFileName = rule.getFileSubstitution();
+
+                    for (int index = 0; index <= matcher.groupCount(); index++) {
+                        String name = index + "";
+                        String value = matcher.group(index);
+
+                        newFileName = newFileName.replaceAll("\\^" + name + "\\$", value);
+                    }
+
+                    String newFullFileName = source.getAbsolutePath() + File.separator + newFileName;
+
+                    try {
+                        file.renameTo(new File(newFullFileName));
+                    } catch (SecurityException e) {
+                        e.printStackTrace();
+                    }
+
+                    getLog().info("NEW FILE NAME: " + newFileName);
                 }
 
                 getLog().info("RULE: " + rule.getFileRegex());
